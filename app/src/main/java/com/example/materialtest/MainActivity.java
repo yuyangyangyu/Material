@@ -1,7 +1,9 @@
 package com.example.materialtest;
 
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.support.annotation.NonNull;
+import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
@@ -10,8 +12,6 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -28,21 +28,41 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
     private static int count=1;
-
     private DrawerLayout mDrawaerlayout;
     private List<City> cityList =new ArrayList<>();
     private FruitAdapter adapter;
     //判断子线程是否执行完成
     private static Attractions attractions=new Attractions();
-    private static boolean flag=false;
-    /**
-     * 通过设置静态变量，等待子线程完成在执行下一步
-     */
-    public static void back(Attractions attractions,String url){
-        Log.v("sss","子线程完成");
-        attractions.Search(url);
-        flag=true;
+
+
+    class Task extends AsyncTask<Void ,Integer,Boolean> {
+
+        private String strings;
+        public Task(String string){
+            this.strings=string;
+        }
+
+        @Override
+        protected Boolean doInBackground(Void... voids) {
+            attractions.Search(strings);
+            return true;
+        }
+
+        @Override
+        protected void onPostExecute(Boolean aBoolean) {
+            super.onPostExecute(aBoolean);
+            if (aBoolean==true){
+                Log.v("sss", String.valueOf(attractions.size()));
+                initFruits();
+                CoordinatorLayout coordinatorLayout=findViewById(R.id.main);
+                coordinatorLayout.setVisibility(View.VISIBLE);
+
+            }
+        }
     }
+
+
+
     /**
      * 初始化函数
      */
@@ -58,15 +78,12 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        //加载80条数据
-            MyThread myThread=new MyThread(attractions, String.format("https://you.ctrip.com/sight/chongqing158/s0-p%d.html#sightname",count));
-            count++;
-            myThread.start();
-            //等待子线程完成
-            while (!flag);
-            initFruits();
-            flag=false;
-            Log.v("sss", String.valueOf(cityList.size()));
+        final Task task=new Task("https://you.ctrip.com/sight/chongqing158.html");
+        task.execute();
+
+
+        Log.v("sss", String.valueOf(cityList));
+
         initFruits();
         android.support.v7.widget.Toolbar toolbar=findViewById(R.id.toobar);
         toolbar.setTitle("主页");
@@ -74,7 +91,7 @@ public class MainActivity extends AppCompatActivity {
         mDrawaerlayout=findViewById(R.id.drawable_layout);
         NavigationView navigationView=findViewById(R.id.nav_view);
         FloatingActionButton fat=findViewById(R.id.fab);
-        ActionBar actionBar=getSupportActionBar();
+        final ActionBar actionBar=getSupportActionBar();
         if (actionBar!=null){
             actionBar.setDisplayHomeAsUpEnabled(true);
             actionBar.setHomeAsUpIndicator(R.drawable.ic_menu);
@@ -118,16 +135,12 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onLoadMore() {
                 if (count<5){
+                    Task task1 =new Task("https://you.ctrip.com/sight/chongqing158/s0-p2.html#sightname");
                     Log.v("sss","加载更多");
-                    MyThread myThread=new MyThread(attractions, String.format("https://you.ctrip.com/sight/chongqing158/s0-p%d.html#sightname",count));
-                    myThread.start();
-                    count++;
-                    //等待子线程完成
-                    while (!flag);
-                    recyclerView.setPullLoadMoreCompleted();
-                    initFruits();
-                    flag=false;
+
+                    task1.execute();
                     adapter.notifyDataSetChanged();
+                    recyclerView.setPullLoadMoreCompleted();
                 }
 
             }
