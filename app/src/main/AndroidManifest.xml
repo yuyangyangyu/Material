@@ -11,13 +11,13 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+        <activity android:name=".Food.FoodMianActivity"></activity>
         <activity android:name=".Detail" />
         <activity
             android:name=".MainActivity"
-            android:label="Fruit">
+            android:label="Material">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>

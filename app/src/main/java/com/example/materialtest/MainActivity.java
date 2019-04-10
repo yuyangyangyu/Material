@@ -1,5 +1,6 @@
 package com.example.materialtest;
 
+import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
@@ -16,16 +17,21 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
+
+
+import com.example.materialtest.Food.FoodMianActivity;
+import com.wuxiaolong.pullloadmorerecyclerview.PullLoadMoreRecyclerView;
+
 import java.util.ArrayList;
 import java.util.List;
 
 
 public class MainActivity extends AppCompatActivity {
+    private static int count=1;
 
     private DrawerLayout mDrawaerlayout;
     private List<City> cityList =new ArrayList<>();
     private FruitAdapter adapter;
-
     //判断子线程是否执行完成
     private static Attractions attractions=new Attractions();
     private static boolean flag=false;
@@ -53,18 +59,17 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         //加载80条数据
-        for (int i=1;i<=2;i++){
-            MyThread myThread=new MyThread(attractions, String.format("https://you.ctrip.com/sight/chongqing158/s0-p%d.html#sightname",i));
+            MyThread myThread=new MyThread(attractions, String.format("https://you.ctrip.com/sight/chongqing158/s0-p%d.html#sightname",count));
+            count++;
             myThread.start();
             //等待子线程完成
             while (!flag);
             initFruits();
             flag=false;
             Log.v("sss", String.valueOf(cityList.size()));
-        }
         initFruits();
-
         android.support.v7.widget.Toolbar toolbar=findViewById(R.id.toobar);
+        toolbar.setTitle("主页");
         setSupportActionBar(toolbar);
         mDrawaerlayout=findViewById(R.id.drawable_layout);
         NavigationView navigationView=findViewById(R.id.nav_view);
@@ -78,7 +83,12 @@ public class MainActivity extends AppCompatActivity {
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
-                mDrawaerlayout.closeDrawers();
+                //mDrawaerlayout.closeDrawers();
+                switch (menuItem.getItemId()){
+                    case R.id.nav_call:
+                        Intent intent =new Intent(MainActivity.this,FoodMianActivity.class);
+                        startActivity(intent);
+                }
                 return true;
             }
         });
@@ -94,12 +104,41 @@ public class MainActivity extends AppCompatActivity {
                         }).show();
             }
         });
-        RecyclerView recyclerView =findViewById(R.id.recycler_view);
-        final GridLayoutManager layoutManager =new GridLayoutManager(MainActivity.this,2);
-        recyclerView.setLayoutManager(layoutManager);
+        final PullLoadMoreRecyclerView recyclerView =findViewById(R.id.recycler_view);
+        recyclerView.setLinearLayout();
+        recyclerView.setPullRefreshEnable(false);
         adapter=new FruitAdapter(cityList);
         recyclerView.setAdapter(adapter);
+        recyclerView.setOnPullLoadMoreListener(new PullLoadMoreRecyclerView.PullLoadMoreListener() {
+            @Override
+            public void onRefresh() {
+
+            }
+
+            @Override
+            public void onLoadMore() {
+                if (count<5){
+                    Log.v("sss","加载更多");
+                    MyThread myThread=new MyThread(attractions, String.format("https://you.ctrip.com/sight/chongqing158/s0-p%d.html#sightname",count));
+                    myThread.start();
+                    count++;
+                    //等待子线程完成
+                    while (!flag);
+                    recyclerView.setPullLoadMoreCompleted();
+                    initFruits();
+                    flag=false;
+                    adapter.notifyDataSetChanged();
+                }
+
+            }
+        });
+
+
+
+
+
     }
+
     public boolean onCreateOptionsMenu(Menu menu){
         getMenuInflater().inflate(R.menu.toolbar,menu);
         return true;
@@ -109,6 +148,7 @@ public class MainActivity extends AppCompatActivity {
         switch (item.getItemId()){
             case android.R.id.home:
                mDrawaerlayout.openDrawer(GravityCompat.START);
+               break;
         }
         return true;
     }

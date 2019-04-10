@@ -31,12 +31,12 @@
            android:layout_gravity="bottom|end"
            android:layout_margin="16dp"
            android:src="@drawable/ic_done"/>
-
-        <android.support.v7.widget.RecyclerView
+        <com.wuxiaolong.pullloadmorerecyclerview.PullLoadMoreRecyclerView
             app:layout_behavior="@string/appbar_scrolling_view_behavior"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:id="@+id/recycler_view"/>
+
 
     </android.support.design.widget.CoordinatorLayout>
 
