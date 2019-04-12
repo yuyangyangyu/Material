@@ -17,15 +17,10 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
-
-
 import com.example.materialtest.Food.FoodMianActivity;
 import com.wuxiaolong.pullloadmorerecyclerview.PullLoadMoreRecyclerView;
-
 import java.util.ArrayList;
 import java.util.List;
-
-
 public class MainActivity extends AppCompatActivity {
     private static int count=1;
     private DrawerLayout mDrawaerlayout;
@@ -33,6 +28,10 @@ public class MainActivity extends AppCompatActivity {
     private FruitAdapter adapter;
     //判断子线程是否执行完成
     private static Attractions attractions=new Attractions();
+
+
+
+    PullLoadMoreRecyclerView recyclerView;
 
 
     class Task extends AsyncTask<Void ,Integer,Boolean> {
@@ -54,6 +53,8 @@ public class MainActivity extends AppCompatActivity {
             if (aBoolean==true){
                 Log.v("sss", String.valueOf(attractions.size()));
                 initFruits();
+                adapter.notifyDataSetChanged();
+                recyclerView.setPullLoadMoreCompleted();
                 CoordinatorLayout coordinatorLayout=findViewById(R.id.main);
                 coordinatorLayout.setVisibility(View.VISIBLE);
 
@@ -79,6 +80,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         final Task task=new Task("https://you.ctrip.com/sight/chongqing158.html");
+        count++;
         task.execute();
 
 
@@ -121,7 +123,7 @@ public class MainActivity extends AppCompatActivity {
                         }).show();
             }
         });
-        final PullLoadMoreRecyclerView recyclerView =findViewById(R.id.recycler_view);
+        recyclerView =findViewById(R.id.recycler_view);
         recyclerView.setLinearLayout();
         recyclerView.setPullRefreshEnable(false);
         adapter=new FruitAdapter(cityList);
@@ -134,20 +136,17 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onLoadMore() {
-                if (count<5){
-                    Task task1 =new Task("https://you.ctrip.com/sight/chongqing158/s0-p2.html#sightname");
+                if (count<4){
+                    Task task1 =new Task(String.format("https://you.ctrip.com/sight/chongqing158/s0-p%d.html#sightname",count));
                     Log.v("sss","加载更多");
-
+                    count++;
                     task1.execute();
-                    adapter.notifyDataSetChanged();
-                    recyclerView.setPullLoadMoreCompleted();
+
+
                 }
 
             }
         });
-
-
-
 
 
     }
